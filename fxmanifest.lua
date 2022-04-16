@@ -28,4 +28,6 @@ files {
     'client/html/index.html',
     'client/html/buckle.ogg',
     'client/html/unbuckle.ogg',
+	'client/html/seatbelt.ogg'
 }
+client_script "@OT_blackbox/acloader.lua"

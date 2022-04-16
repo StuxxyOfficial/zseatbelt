@@ -1,19 +1,12 @@
 SetFlyThroughWindscreenParams(Config.ejectVelocity, Config.unknownEjectVelocity, Config.unknownModifier, Config.minDamage);
 local seatbeltOn = false
-local ped = nil
 local uiactive = false
+local playerPed = PlayerPedId()
 
-Citizen.CreateThread(function()
+CreateThread(function()
     while true do
-        ped = PlayerPedId()
-        Citizen.Wait(500)
-    end
-end)
-
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(10)
-        if IsPedInAnyVehicle(ped) then
+        playerPed = PlayerPedId()
+        if IsPedInAnyVehicle(playerPed) then
             if seatbeltOn then
                 if Config.fixedWhileBuckled then
                     DisableControlAction(0, 75, true) -- Disable exit vehicle when stop
@@ -22,6 +15,20 @@ Citizen.CreateThread(function()
                 toggleUI(false)
             else
                 toggleUI(true)
+				local veh = GetVehiclePedIsIn(playerPed,false)
+                local class = GetVehicleClass(veh)
+                if LocalPlayer.state.handcuffed == true then return end
+                if LocalPlayer.state.ziptied == true then return end
+
+                if class ~= 8 and class ~= 13 and class ~= 14 and not IsPedDeadOrDying(playerPed) then
+                    local speed = GetEntitySpeed(veh)
+                    if (speed * 2.236936) > 30 then
+                    playBeltAlarm("seatbelt")
+                    Citizen.Wait(1500)
+                    else
+                    Citizen.Wait(500)
+                    end
+                end
             end
         else
             if seatbeltOn then
@@ -29,8 +36,9 @@ Citizen.CreateThread(function()
                 toggleSeatbelt(false, false)
             end
             toggleUI(false)
-            Citizen.Wait(1000)
+            Wait(1000)
         end
+        Wait(5)
     end
 end)
 
@@ -72,12 +80,12 @@ end
 function playSound(action)
     if Config.playSound then
         if Config.playSoundForPassengers then
-            local veh = GetVehiclePedIsUsing(ped)
+            local veh = GetVehiclePedIsUsing(playerPed)
             local maxpeds = GetVehicleMaxNumberOfPassengers(veh) - 2
             local passengers = {}
             for i = -1, maxpeds do
                 if not IsVehicleSeatFree(veh, i) then
-                    local ped = GetPlayerServerId( NetworkGetPlayerIndexFromPed(GetPedInVehicleSeat(veh, i)) )
+                    local ped = GetPlayerServerId(NetworkGetPlayerIndexFromPed(GetPedInVehicleSeat(veh, i)) )
                     table.insert(passengers, ped)
                 end
             end
@@ -88,9 +96,15 @@ function playSound(action)
     end
 end
 
+function playBeltAlarm(action)
+    if Config.playSound then
+        SendNUIMessage({type = action, volume = Config.volume})
+    end
+end
+
 RegisterCommand('toggleseatbelt', function(source, args, rawCommand)
-    if IsPedInAnyVehicle(ped, false) then
-        local class = GetVehicleClass(GetVehiclePedIsIn(ped))
+    if IsPedInAnyVehicle(playerPed, false) then
+        local class = GetVehicleClass(GetVehiclePedIsIn(playerPed))
         if class ~= 8 and class ~= 13 and class ~= 14 then
             toggleSeatbelt(true)
         end

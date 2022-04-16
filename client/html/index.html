@@ -33,9 +33,11 @@
     </div>
     <audio id="buckle" src="buckle.ogg" preload></audio>
     <audio id="unbuckle" src="unbuckle.ogg" preload></audio>
+	<audio id="seatbelt" src="seatbelt.ogg" preload></audio>
     <script>
         const buckle = document.getElementById("buckle");
         const unbuckle = document.getElementById("unbuckle");
+		const seatbelt = document.getElementById("seatbelt");
         const indicator = document.getElementById("indicatorbox");
 
         addEventListener('message', function(event) {
@@ -47,6 +49,10 @@
                 case "buckle":
                     buckle.volume = event.data.volume;
                     buckle.play();
+                    break;
+				case "seatbelt":
+                    seatbelt.volume = event.data.volume;
+                    seatbelt.play();
                     break;
                 case "showindicator":
                     indicator.classList.add('show');
